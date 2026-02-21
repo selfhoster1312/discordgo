@@ -33,6 +33,7 @@ func New(token string) (s *Session, err error) {
 
 	// Create an empty Session interface.
 	s = &Session{
+		Endpoints:                          NewEndpoints(),
 		State:                              NewState(),
 		Ratelimiter:                        NewRatelimiter(),
 		StateEnabled:                       true,

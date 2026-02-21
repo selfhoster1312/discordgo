@@ -112,6 +112,9 @@ type Session struct {
 	// used to deal with rate limits
 	Ratelimiter *RateLimiter
 
+	// use a custom discord API
+	Endpoints *Endpoints
+
 	// Event handlers
 	handlersMu   sync.RWMutex
 	handlers     map[string][]*eventHandlerInstance
@@ -925,6 +928,8 @@ type Guild struct {
 
 	// Stage instances in the guild
 	StageInstances []*StageInstance `json:"stage_instances"`
+
+	Session *Session
 }
 
 // A GuildPreview holds data related to a specific public Discord Guild, even if the user is not in the guild.
@@ -961,6 +966,8 @@ type GuildPreview struct {
 
 	// the description for the guild
 	Description string `json:"description"`
+
+	Session *Session
 }
 
 // IconURL returns a URL to the guild's icon.
@@ -968,7 +975,7 @@ type GuildPreview struct {
 //	size:    The size of the desired icon image as a power of two
 //	         Image size can be any power of two between 16 and 4096.
 func (g *GuildPreview) IconURL(size string) string {
-	return iconURL(g.Icon, EndpointGuildIcon(g.ID, g.Icon), EndpointGuildIconAnimated(g.ID, g.Icon), size)
+	return iconURL(g.Icon, g.Session.Endpoints.EndpointGuildIcon(g.ID, g.Icon), g.Session.Endpoints.EndpointGuildIconAnimated(g.ID, g.Icon), size)
 }
 
 // GuildScheduledEvent is a representation of a scheduled event in a guild. Only for retrieval of the data.
@@ -1288,7 +1295,7 @@ const (
 //	size:    The size of the desired icon image as a power of two
 //	         Image size can be any power of two between 16 and 4096.
 func (g *Guild) IconURL(size string) string {
-	return iconURL(g.Icon, EndpointGuildIcon(g.ID, g.Icon), EndpointGuildIconAnimated(g.ID, g.Icon), size)
+	return iconURL(g.Icon, g.Session.Endpoints.EndpointGuildIcon(g.ID, g.Icon), g.Session.Endpoints.EndpointGuildIconAnimated(g.ID, g.Icon), size)
 }
 
 // BannerURL returns a URL to the guild's banner.
@@ -1296,7 +1303,7 @@ func (g *Guild) IconURL(size string) string {
 //	size:    The size of the desired banner image as a power of two
 //	         Image size can be any power of two between 16 and 4096.
 func (g *Guild) BannerURL(size string) string {
-	return bannerURL(g.Banner, EndpointGuildBanner(g.ID, g.Banner), EndpointGuildBannerAnimated(g.ID, g.Banner), size)
+	return bannerURL(g.Banner, g.Session.Endpoints.EndpointGuildBanner(g.ID, g.Banner), g.Session.Endpoints.EndpointGuildBannerAnimated(g.ID, g.Banner), size)
 }
 
 // A UserGuild holds a brief version of a Guild
@@ -1416,6 +1423,8 @@ type Role struct {
 	// This is a combination of bit masks; the presence of a certain flag can
 	// be checked by performing a bitwise AND between this int and the flag.
 	Flags RoleFlags `json:"flags"`
+
+	Session *Session
 }
 
 // RoleFlags represent the flags of a Role.
@@ -1442,7 +1451,7 @@ func (r *Role) IconURL(size string) string {
 		return ""
 	}
 
-	URL := EndpointRoleIcon(r.ID, r.Icon)
+	URL := r.Session.Endpoints.EndpointRoleIcon(r.ID, r.Icon)
 
 	if size != "" {
 		return URL + "?size=" + size
@@ -1602,6 +1611,8 @@ type Member struct {
 	// The time at which the member's timeout will expire.
 	// Time in the past or nil if the user is not timed out.
 	CommunicationDisabledUntil *time.Time `json:"communication_disabled_until"`
+
+	Session *Session
 }
 
 // Mention creates a member mention
@@ -1619,8 +1630,8 @@ func (m *Member) AvatarURL(size string) string {
 		return m.User.AvatarURL(size)
 	}
 	// The default/empty avatar case should be handled by the above condition
-	return avatarURL(m.Avatar, "", EndpointGuildMemberAvatar(m.GuildID, m.User.ID, m.Avatar),
-		EndpointGuildMemberAvatarAnimated(m.GuildID, m.User.ID, m.Avatar), size)
+	return avatarURL(m.Avatar, "", m.Session.Endpoints.EndpointGuildMemberAvatar(m.GuildID, m.User.ID, m.Avatar),
+		m.Session.Endpoints.EndpointGuildMemberAvatarAnimated(m.GuildID, m.User.ID, m.Avatar), size)
 
 }
 
@@ -1634,8 +1645,8 @@ func (m *Member) BannerURL(size string) string {
 	}
 	return bannerURL(
 		m.Banner,
-		EndpointGuildMemberBanner(m.GuildID, m.User.ID, m.Banner),
-		EndpointGuildMemberBannerAnimated(m.GuildID, m.User.ID, m.Banner),
+		m.Session.Endpoints.EndpointGuildMemberBanner(m.GuildID, m.User.ID, m.Banner),
+		m.Session.Endpoints.EndpointGuildMemberBannerAnimated(m.GuildID, m.User.ID, m.Banner),
 		size,
 	)
 }

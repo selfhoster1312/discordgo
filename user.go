@@ -119,6 +119,8 @@ type User struct {
 
 	// The user's primary guild.
 	PrimaryGuild UserPrimaryGuild `json:"primary_guild"`
+
+	Session *Session
 }
 
 // String returns a unique identifier of the form username#discriminator
@@ -146,9 +148,9 @@ func (u *User) Mention() string {
 func (u *User) AvatarURL(size string) string {
 	return avatarURL(
 		u.Avatar,
-		EndpointDefaultUserAvatar(u.DefaultAvatarIndex()),
-		EndpointUserAvatar(u.ID, u.Avatar),
-		EndpointUserAvatarAnimated(u.ID, u.Avatar),
+		u.Session.Endpoints.EndpointDefaultUserAvatar(u.DefaultAvatarIndex()),
+		u.Session.Endpoints.EndpointUserAvatar(u.ID, u.Avatar),
+		u.Session.Endpoints.EndpointUserAvatarAnimated(u.ID, u.Avatar),
 		size,
 	)
 }
@@ -158,7 +160,7 @@ func (u *User) AvatarURL(size string) string {
 //	size:    The size of the desired banner image as a power of two
 //	         Image size can be any power of two between 16 and 4096.
 func (u *User) BannerURL(size string) string {
-	return bannerURL(u.Banner, EndpointUserBanner(u.ID, u.Banner), EndpointUserBannerAnimated(u.ID, u.Banner), size)
+	return bannerURL(u.Banner, u.Session.Endpoints.EndpointUserBanner(u.ID, u.Banner), u.Session.Endpoints.EndpointUserBannerAnimated(u.ID, u.Banner), size)
 }
 
 // DefaultAvatarIndex returns the index of the user's default avatar.
