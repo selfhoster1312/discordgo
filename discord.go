@@ -30,10 +30,14 @@ const VERSION = "0.29.0"
 // Or if it is an OAuth2 token, it must be prefixed with "Bearer "
 //		e.g. "Bearer ..."
 func New(token string) (s *Session, err error) {
+	return NewWithEndpoints(token, NewEndpoints())
+}
+
+func NewWithEndpoints(token string, endpoints *Endpoints) (s *Session, err error) {
 
 	// Create an empty Session interface.
 	s = &Session{
-		Endpoints:                          NewEndpoints(),
+		Endpoints:                          endpoints,
 		State:                              NewState(),
 		Ratelimiter:                        NewRatelimiter(),
 		StateEnabled:                       true,
